@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servibook - Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=6">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="services.html">Services</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="theme-toggle" aria-label="Toggle color theme" id="themeToggle" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                <a href="login.html" class="btn btn-outline auth-guest">Login</a>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <!-- Auth Container -->
+    <div class="auth-container">
+        <div class="auth-wrapper">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>Create Account</h1>
+                    <p>Please enter your details below to create an account.</p>
+                </div>
+
+                
+                    
+                
+
+                
+                    
+                
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="full_name">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" value="" autocomplete="name" required>
+                        <small class="field-help" id="fullNameHelp">Enter the name you want providers to see.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" value="" autocomplete="email" required>
+                        <small class="field-help">Use an email address you can access.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="new-password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        <small class="field-help">Choose a password with at least 6 characters.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" autocomplete="new-password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">
+                                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Select Role</label>
+                        <select id="role" name="role" required onchange="toggleProviderFields()">
+                            <option value="customer" >Customer - I want to book services</option>
+                            <option value="provider" >Provider - I want to offer services</option>
+                        </select>
+                    </div>
+
+                    <div id="providerFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" placeholder="Enter your mobile phone number" value="" autocomplete="tel">
+                            <small class="field-help">Enter your mobile phone number so customer can contact you.</small>
+                        </div>
+
+                        <div class="form-row grid-2-col">
+                            <div class="form-group">
+                                <label for="business-location-select" class="bold-label">Barangay *</label>
+                                <select id="business-location-select" name="barangay" class="form-control-select">
+                                    <option value="" selected>Select Barangay...</option>
+                                    <option value="Barangay 1 (Pob.)">Barangay 1 (Pob.)</option>
+                                    <option value="Barangay 2 (Pob.)">Barangay 2 (Pob.)</option>
+                                    <option value="Barangay 3 (Pob.)">Barangay 3 (Pob.)</option>
+                                    <option value="Barangay 4 (Pob.)">Barangay 4 (Pob.)</option>
+                                    <option value="Barangay 5 (Pob.)">Barangay 5 (Pob.)</option>
+                                    <option value="Barangay 6 (Pob.)">Barangay 6 (Pob.)</option>
+                                    <option value="Barangay 7 (Pob.)">Barangay 7 (Pob.)</option>
+                                    <option value="Barangay 8 (Pob.)">Barangay 8 (Pob.)</option>
+                                    <option value="Labangan Poblacion">Labangan Poblacion</option>
+                                    <option value="Caminawit">Caminawit</option>
+                                    <option value="San Roque">San Roque</option>
+                                    <option value="Bagong Sikat">Bagong Sikat</option>
+                                    <option value="Bubog">Bubog</option>
+                                    <option value="Central">Central</option>
+                                    <option value="Magbay">Magbay</option>
+                                    <option value="Mangarin">Mangarin</option>
+                                    <option value="Mapaya">Mapaya</option>
+                                    <option value="Murtha">Murtha</option>
+                                    <option value="La Curva">La Curva</option>
+                                    <option value="San Agustin">San Agustin</option>
+                                    <option value="San Isidro">San Isidro</option>
+                                    <option value="Pag-asa">Pag-asa</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="street-address-input" class="bold-label">Street Address / Landmark</label>
+                                <input type="text" id="street-address-input" name="street_address" class="form-control" placeholder="e.g., Purok 3, Near Public Market, Rizal St.">
+                            </div>
+                        </div>
+                        <small class="field-help">Add a street, purok, or nearby landmark to help customers find your business.</small>
+                    </div>
+
+                    <!-- Data Privacy Act (RA 10173) consent -->
+                    <div class="form-group privacy-consent-wrapper mt-3">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="privacy-consent-checkbox" name="privacy_consent" required aria-describedby="privacy-consent-error" aria-labelledby="privacy-consent-label open-privacy-modal-btn privacy-consent-rest">
+                            <span class="checkmark" aria-hidden="true"></span>
+                            <span class="checkbox-label"><label id="privacy-consent-label" for="privacy-consent-checkbox">I have read and agree to the</label>
+                                <button type="button" id="open-privacy-modal-btn" class="text-link-btn" aria-label="Read the Terms of Service and Privacy Policy">Terms of Service &amp; Privacy Policy</button>
+                                <span id="privacy-consent-rest">in compliance with the Philippines Data Privacy Act of 2012 (R.A. 10173).</span>
+                                <span aria-hidden="true">*</span>
+                            </span>
+                        </div>
+                        <small id="privacy-consent-error" class="privacy-consent-error" role="alert" hidden>Please agree to the Privacy Policy before creating your account.</small>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Create Account</button>
+
+                    <div class="auth-divider" aria-hidden="true"><span>or</span></div>
+                    <button type="button" id="google-auth-btn" class="btn-google">
+                        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
+                            <path fill="#34A853" d="M12 24c3.24 0 6.01-1.08 8.01-2.91l-3.88-3c-1.08.72-2.45 1.16-4.13 1.16-3.18 0-5.88-2.15-6.84-5.05H1.14v3.11C3.12 21.3 7.28 24 12 24z"/>
+                            <path fill="#FBBC05" d="M5.16 14.2c-.25-.72-.38-1.49-.38-2.2s.13-1.48.38-2.2V6.69H1.14C.41 8.14 0 10.02 0 12s.41 3.86 1.14 5.31l4.02-3.11z"/>
+                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.01 1.19 15.24 0 12 0 7.28 0 3.12 2.7 1.14 6.69l4.02 3.11c.96-2.9 3.66-5.05 6.84-5.05z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+
+                    <div class="auth-footer">
+                        Already have an account? <a href="login.html">Login</a>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Privacy & Terms Modal -->
+    <div id="privacy-policy-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title" aria-hidden="true">
+        <div class="modal-card modal-card-wide text-left privacy-modal-card" tabindex="-1">
+            <div class="modal-header">
+                <h3 id="privacy-modal-title">SERVIBOOK Data Privacy &amp; Terms Notice</h3>
+                <button type="button" id="close-privacy-modal-btn" class="modal-close-x" aria-label="Close privacy notice">&times;</button>
+            </div>
+            <div class="modal-body scrollable-modal-body">
+                <p>In compliance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong> and its Implementing Rules and Regulations, SERVIBOOK explains below how personal data is used to connect customers with local service providers in San Jose, Occidental Mindoro.</p>
+                <h4>1. Information We Collect</h4>
+                <ul>
+                    <li><strong>Customer accounts:</strong> Full name, email address, phone number (if provided), and appointment booking details.</li>
+                    <li><strong>Provider accounts:</strong> Provider name, contact number (if provided), barangay, street address, map location, operating hours, and service listings.</li>
+                    <li><strong>Bookings and messaging:</strong> Booking details and status, chat messages, and selected payment method. Payment simulations do not process real payments; card details are not saved.</li>
+                </ul>
+                <h4>2. Why We Use This Information</h4>
+                <p>We use the information to create and manage accounts, show provider and service listings, facilitate appointment bookings, let customers and providers communicate, and operate and improve SERVIBOOK.</p>
+                <h4>3. Data Sharing, Security, and Retention</h4>
+                <p>Relevant account, service, and booking information is made available to customers or providers as needed for the platform features they use. SERVIBOOK uses Firebase Authentication and Firestore access controls. Information is retained for as long as needed to operate the service and meet applicable obligations; it is not automatically erased when an account stops being active.</p>
+                <h4>4. Your Rights and Requests</h4>
+                <p>You may request access to or correction of your personal data, object to or withdraw consent where applicable, or ask about deletion by contacting SERVIBOOK through the <a href="contact.html">Contact page</a>. Requests may be subject to applicable legal obligations and verification.</p>
+                <p class="privacy-notice-footnote">Please review this notice before agreeing. Your consent is recorded with your account registration.</p>
+            </div>
+            <div class="modal-actions mt-3">
+                <button type="button" id="accept-privacy-btn" class="btn-primary full-width">I Understand &amp; Agree</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleProviderFields() {
+            const role = document.getElementById('role').value;
+            const providerFields = document.getElementById('providerFields');
+            const barangayInput = document.getElementById('business-location-select');
+            const fullNameHelp = document.getElementById('fullNameHelp');
+
+            providerFields.style.display = role === 'provider' ? 'block' : 'none';
+            barangayInput.required = role === 'provider';
+            fullNameHelp.textContent = role === 'provider'
+                ? 'Enter the name you want customers to see.'
+                : 'Enter the name you want providers to see.';
+        }
+
+        toggleProviderFields();
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            btn.innerHTML = isPassword
+                ? '<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+                : '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        }
+    </script>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+

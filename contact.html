@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contact SERVIBOOK with questions about finding or offering local services in San Jose, Occidental Mindoro.">
+    <title>Contact Us | SERVIBOOK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=9">
+    <script>
+        try { document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark'; } catch (_) {}
+    </script>
+</head>
+<body class="dark-theme">
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo"><span class="logo-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg></span>Servibook</a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html" class="active" aria-current="page">Contact</a></li>
+                <li><a href="bookings.html" data-role="customer" class="auth-user d-none">My Bookings</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="theme-toggle" type="button" aria-label="Toggle color theme" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <span class="user-welcome"></span>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                <a href="login.html" data-firebase-signout class="btn btn-outline auth-user d-none">Logout</a>
+                <a href="login.html" class="btn btn-outline auth-guest">Login</a>
+                <a href="register.html" class="btn btn-primary auth-guest">Sign Up</a>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" type="button" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <main class="site-info-page contact-page">
+        <header class="info-hero contact-hero">
+            <span class="info-eyebrow">We’re here to help</span>
+            <h1>Contact SERVIBOOK</h1>
+            <p>Have a question about booking a service or joining as a provider? Send us a message.</p>
+        </header>
+
+        <div class="contact-layout">
+            <section class="contact-form-card" aria-labelledby="contact-form-title">
+                <h2 id="contact-form-title">Send an inquiry</h2>
+                <p class="contact-intro">Fill in the form and we’ll receive your message.</p>
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label for="contact-name">Your name</label>
+                        <input id="contact-name" name="name" type="text" autocomplete="name" maxlength="120" required>
+                    </div>
+                    <div class="form-row grid-2-col">
+                        <div class="form-group">
+                            <label for="contact-email">Email address</label>
+                            <input id="contact-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-phone">Phone <span class="optional-label">(optional)</span></label>
+                            <input id="contact-phone" name="phone" type="tel" autocomplete="tel" maxlength="30">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-topic">What can we help with?</label>
+                        <select id="contact-topic" name="topic" required>
+                            <option value="" disabled selected>Select a topic</option>
+                            <option value="booking">Booking a service</option>
+                            <option value="provider">Provider account or services</option>
+                            <option value="account">My account</option>
+                            <option value="other">Something else</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-message">Message</label>
+                        <textarea id="contact-message" name="message" rows="6" maxlength="5000" required placeholder="Tell us how we can help…"></textarea>
+                        <small class="field-help">Please don’t include passwords or payment card details.</small>
+                    </div>
+                    <div class="contact-honeypot" aria-hidden="true">
+                        <label for="contact-website">Leave this field empty</label>
+                        <input id="contact-website" name="website" type="text" tabindex="-1" autocomplete="off">
+                    </div>
+                    <button class="btn btn-primary contact-submit" type="submit">Send Message</button>
+                    <p id="contact-form-status" class="contact-form-status" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+
+            <aside class="contact-aside">
+                <section class="info-card contact-help-card">
+                    <span class="card-icon" aria-hidden="true">📍</span>
+                    <h2>Rooted in San Jose</h2>
+                    <p>SERVIBOOK helps residents connect with service providers in San Jose, Occidental Mindoro.</p>
+                    <a href="map.html" class="text-link">Explore the provider map <span aria-hidden="true">→</span></a>
+                </section>
+                <section class="faq-card" aria-labelledby="faq-title">
+                    <span class="info-eyebrow">Quick answers</span>
+                    <h2 id="faq-title">Frequently asked questions</h2>
+                    <details class="faq-item">
+                        <summary>How do I book a service?</summary>
+                        <p>Browse the services, open the one you need, choose an available date and time, and submit your booking request. You can follow its status in My Bookings.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How do I contact a provider?</summary>
+                        <p>Open a service or booking and use the Message Provider option when it is available to start a chat.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How does payment work?</summary>
+                        <p>For Cash on Service bookings, pay the provider when the service is completed. Confirm other payment details directly with the provider.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How can I offer services?</summary>
+                        <p>Create an account and choose the Provider role. After signing in, add your service details from the provider dashboard.</p>
+                    </details>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <a href="index.html" class="footer-logo"><span class="logo-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg></span>Servibook</a>
+            <nav class="footer-links" aria-label="Footer navigation"><a href="index.html">Home</a><a href="services.html">Services</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav>
+            <p class="footer-copyright">© 2026 Servibook. Local services in San Jose, Occidental Mindoro.</p>
+        </div>
+    </footer>
+    <script src="js/main.js"></script>
+    <script type="module" src="js/contact.js"></script>
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>

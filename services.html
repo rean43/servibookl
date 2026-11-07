@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servibook - Services</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=7">
+    <style>
+        /* Page Header */
+        .page-header {
+            padding: 100px 24px 40px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0ea5e9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover { color: white; }
+
+        .breadcrumb span { color: rgba(255,255,255,0.5); }
+
+        .breadcrumb .current { color: white; font-weight: 600; }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            background: white;
+            padding: 8px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            max-width: 800px;
+        }
+
+        .search-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .search-field:focus-within {
+            border-color: var(--primary-light);
+            background: white;
+        }
+
+        .search-field svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-muted);
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        .search-field input {
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            width: 100%;
+            outline: none;
+        }
+
+        .search-field input::placeholder { color: var(--text-muted); }
+
+        .search-submit {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-family: inherit;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .search-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px 80px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 32px;
+        }
+
+        /* Sidebar Filters */
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .filter-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .filter-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-title svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--primary);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .filter-option:hover { background: var(--bg); }
+
+        .filter-option input[type="checkbox"],
+        .filter-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .filter-option label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .filter-option .count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .filter-actions .btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.85rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-filter {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-filter:hover { background: var(--primary-dark); }
+
+        /* Results Header */
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .results-count {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .results-count strong { color: var(--text-primary); }
+
+        .sort-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .sort-dropdown select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            background: var(--surface);
+            cursor: pointer;
+            outline: none;
+        }
+
+        .sort-dropdown select:focus { border-color: var(--primary); }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        /* Service Card */
+        .service-card-item {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .service-card-item:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+            border-color: transparent;
+        }
+
+        .card-image {
+            height: 180px;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .service-card-item:hover .card-image img { transform: scale(1.05); }
+
+        .card-image .no-image { font-size: 3.5rem; }
+
+        .card-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255,255,255,0.95);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .card-body { padding: 20px; }
+
+        .card-category {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card-provider {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .card-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .stars { display: flex; gap: 2px; }
+
+        .stars svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--star);
+        }
+
+        .rating-value {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .rating-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .card-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .card-location svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-muted);
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .card-price {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .card-price span {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* Mobile Filter Toggle */
+        .mobile-filter-toggle {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            margin-bottom: 20px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-filter-toggle svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--primary);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+        }
+
+        #servicesEmptyState[hidden] { display: none !important; }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            stroke: var(--text-muted);
+            stroke-width: 1.5;
+            fill: none;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; }
+        .empty-state p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-content { grid-template-columns: 1fr; }
+            .sidebar { position: static; display: none; }
+            .sidebar.active { display: block; }
+            .mobile-filter-toggle { display: flex; }
+        }
+
+        @media (max-width: 768px) {
+            .search-bar { flex-direction: column; padding: 12px; }
+            .search-submit { width: 100%; }
+            .services-grid { grid-template-columns: 1fr; }
+            .page-title { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="services.html" class="active">Services</a></li>
+                
+                    <li><a href="bookings.html" data-role="customer" class="auth-user d-none">My Bookings</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="theme-toggle" aria-label="Toggle color theme" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                
+                    <span class="user-welcome">Hi, </span>
+                    <a href="login.html" class="btn btn-outline auth-user d-none" data-firebase-signout>Logout</a>
+                
+                    <a href="login.html" class="btn btn-outline auth-guest">Login</a>
+                    <a href="register.html" class="btn btn-primary auth-guest">Sign up</a>
+                
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span>›</span>
+                <span class="current">Services</span>
+            </div>
+            <h1 class="page-title">Find Services</h1>
+            <form class="search-bar" id="serviceSearchForm">
+                <div class="search-field">
+                    <label class="visually-hidden" for="serviceSearch">Search services</label>
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input id="serviceSearch" type="text" name="search" placeholder="Search services..." value="">
+                </div>
+                <div class="search-field">
+                    <label class="visually-hidden" for="serviceLocation">Enter a location</label>
+                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <input id="serviceLocation" type="text" name="location" placeholder="Enter location..." value="">
+                </div>
+                <button type="submit" class="search-submit">Search</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="service-category-shortcuts" aria-label="Browse services by category">
+        <h2>Browse by service</h2>
+        <div class="category-shortcut-grid">
+            <a href="services.html?category=barbershop"><span aria-hidden="true">✂️</span><strong>Barbershop</strong></a>
+            <a href="services.html?category=electrician"><span aria-hidden="true">⚡</span><strong>Electrician</strong></a>
+            <a href="services.html?category=plumbing"><span aria-hidden="true">🔧</span><strong>Plumbing</strong></a>
+            <a href="services.html?category=cleaning"><span aria-hidden="true">🧹</span><strong>House cleaning</strong></a>
+            <a href="services.html?category=laundry"><span aria-hidden="true">👕</span><strong>Laundry</strong></a>
+            <a href="services.html?category=carpentry"><span aria-hidden="true">🪚</span><strong>Carpentry</strong></a>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Mobile Filter Toggle -->
+        <button class="mobile-filter-toggle" onclick="document.getElementById('sidebar').classList.toggle('active')">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            Filters
+        </button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Category Filter -->
+            <div class="filter-card">
+                <h3 class="filter-title">
+                    <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    Category
+                </h3>
+                <div class="filter-options" id="categoryFilterOptions">
+                    <div class="filter-option">
+                        <input type="radio" name="category" id="catAll" value=""  onchange="applyFilter()">
+                        <label for="catAll">All Categories</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="filter-card">
+                <h3 class="filter-title">
+                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Location
+                </h3>
+                <div class="filter-options" id="locationFilterOptions">
+                    <div class="filter-option">
+                        <input type="radio" name="locFilter" id="locAll" value=""  onchange="applyFilter()">
+                        <label for="locAll">All Locations</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="button" class="btn btn-outline" data-clear-filters>Reset</button>
+                <button class="btn btn-filter" onclick="applyFilter()">Apply</button>
+            </div>
+        </aside>
+
+        <!-- Services Content -->
+        <main class="services-content">
+            <div class="results-header">
+                <div class="results-count" id="serviceResultsCount" aria-live="polite">Loading services…</div>
+                <div class="sort-dropdown">
+                    <span>Sort by:</span>
+                    <select id="serviceSort" onchange="applySort(this.value)">
+                        <option value="popular" >Most Popular</option>
+                        <option value="rating" >Highest Rated</option>
+                        <option value="price-low" >Price: Low to High</option>
+                        <option value="price-high" >Price: High to Low</option>
+                        <option value="newest" >Newest</option>
+                    </select>
+                </div>
+            </div>
+
+            
+            <div class="services-grid" id="servicesGrid" aria-live="polite"></div>
+            
+            <div class="empty-state" id="servicesEmptyState" hidden>
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <h3>No services available yet</h3>
+                <p>There are no services to display right now. Please check back later.</p>
+                <button type="button" class="btn btn-primary" data-clear-filters>Clear Filters</button>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-copyright">&copy; 2024 Servibook. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <div id="servibookChatMount"></div><script type="module" src="js/firebase-config.js"></script><script type="module" src="js/chat-widget.js?v=3"></script>
+
+    <script src="js/main.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module" src="js/services.js?v=2"></script>
+</body>
+</html>
+
+
+
+
+
+
+

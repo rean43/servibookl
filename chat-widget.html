@@ -1,0 +1,46 @@
+
+<div
+    id="servibookChat"
+    class="servibook-chat-root"
+    data-conversation-id=""
+    data-partner-name=""
+>
+    <button id="chatToggle" class="chat-fab" type="button" aria-label="Need help? Open live chat" aria-controls="chatPanel" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>💬 Need Help? Chat Here</span>
+    </button>
+
+    <div id="chatPanel" class="chat-panel hidden" role="dialog" aria-labelledby="chatTitle" aria-hidden="true">
+        <div class="chat-panel-header">
+            <div>
+                <h3 id="chatTitle">Messages</h3>
+                <p id="chatSubtitle">Chat with providers in real time</p>
+            </div>
+            <button id="chatClose" class="chat-close" type="button" aria-label="Close chat">&times;</button>
+        </div>
+
+        <div class="chat-panel-body">
+            <aside id="chatConversationList" class="chat-conversation-list" aria-label="Conversations"></aside>
+            <div class="chat-thread">
+                <div id="chat-messages-body" class="chat-messages chat-messages-body" role="log" aria-live="polite" aria-relevant="additions text">
+                    <div class="chat-empty">Open a conversation to start chatting.</div>
+                </div>
+                <form id="chat-form" class="chat-form">
+                    <label class="visually-hidden" for="chat-input">Write your message</label>
+                    <input id="chat-input" type="text" placeholder="Choose a conversation to message..." maxlength="1000" autocomplete="off" disabled>
+                    <button id="send-btn" type="submit" class="btn btn-primary" disabled>Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+

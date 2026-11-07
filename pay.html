@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servibook - Payment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=7">
+    <style>
+        .pay-section { max-width: 720px; margin: 0 auto; padding: 100px 24px 80px; }
+        .pay-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-lg); }
+        .pay-header { text-align: center; margin-bottom: 28px; }
+        .pay-header h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; }
+        .pay-header p { color: var(--text-secondary); font-size: 0.95rem; }
+        .pay-amount { text-align: center; padding: 24px; background: var(--bg); border-radius: 12px; margin-bottom: 24px; }
+        .pay-amount .label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .pay-amount .value { font-size: 2.2rem; font-weight: 800; color: var(--primary); }
+        .pay-details { margin-bottom: 24px; }
+        .pay-row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+        .pay-row:last-child { border-bottom: none; }
+        .pay-row span:first-child { color: var(--text-muted); }
+        .pay-row span:last-child { font-weight: 600; text-align: right; }
+        .method-badge { display: inline-flex; padding: 6px 14px; border-radius: 20px; background: rgba(37, 99, 235, 0.1); color: var(--primary); font-weight: 700; font-size: 0.85rem; }
+        .simulation-note { background: #fefce8; color: #854d0e; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 16px; font-size: 0.85rem; margin-bottom: 24px; line-height: 1.5; }
+        [data-theme="dark"] .simulation-note { background: #422006; color: #fde68a; border-color: #713f12; }
+        .pay-form .form-group { margin-bottom: 16px; }
+        .pay-form label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-secondary); }
+        .pay-form input { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 0.95rem; background: var(--surface); color: var(--text-primary); }
+        .pay-form input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        .pay-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        .pay-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .pay-btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .pay-btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .pay-btn-ghost { background: transparent; color: var(--text-secondary); text-align: center; text-decoration: none; padding: 12px; }
+        .success-box { text-align: center; padding: 24px 0; }
+        .success-icon { width: 72px; height: 72px; border-radius: 50%; background: #f0fdf4; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+        .success-icon svg { width: 36px; height: 36px; stroke: #16a34a; stroke-width: 2; fill: none; }
+        [data-theme="dark"] .success-icon { background: #052e16; }
+        .txn-ref { font-family: monospace; font-size: 1rem; font-weight: 700; color: var(--primary); background: var(--bg); padding: 10px 16px; border-radius: 8px; display: inline-block; margin-top: 8px; }
+        .status-badge.pay-paid { background: #f0fdf4; color: #16a34a; }
+        .status-badge.pay-pending { background: #fefce8; color: #ca8a04; }
+        .status-badge.pay-failed, .status-badge.pay-refunded { background: #fef2f2; color: #dc2626; }
+    </style>
+</head>
+<body data-requires-auth>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </a>
+            <div class="nav-auth">
+                <button class="theme-toggle" aria-label="Toggle color theme" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                <a href="bookings.html" data-role="customer" class="auth-user d-none btn btn-outline">My Bookings</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pay-section">
+        <section class="pay-card payment-card-container" aria-labelledby="payment-title">
+            <header class="pay-header payment-header">
+                <h1 id="payment-title">Process Payment</h1>
+                <p id="payment-subtitle">Simulated Checkout</p>
+            </header>
+
+            <div class="pay-amount payment-summary-box">
+                <div class="label summary-label">Total Amount</div>
+                <div id="payment-total-amount" class="value summary-amount">₱0.00</div>
+                <div class="pay-details summary-details">
+                    <div class="pay-row"><span>Service</span><strong id="payment-service-name">Loading…</strong></div>
+                    <div class="pay-row"><span>Provider</span><strong id="payment-provider-name">Loading…</strong></div>
+                    <div class="pay-row"><span>Appointment</span><strong id="payment-appointment">Loading…</strong></div>
+                    <div class="pay-row"><span>Method</span><span id="payment-method-badge" class="method-badge badge-method">GCash</span></div>
+                </div>
+            </div>
+
+            <div class="simulation-note simulation-notice-box" role="note">
+                <strong>Simulation mode:</strong> GCash, Maya, and card details are for demonstration only. No real payment is processed. Card number, expiry, and CVV are never saved.
+            </div>
+            <p id="payment-status-message" class="payment-status-message" role="status" aria-live="polite"></p>
+
+            <div class="payment-method-tabs" role="tablist" aria-label="Choose payment method">
+                <button type="button" class="method-tab active" data-method="gcash" role="tab" aria-selected="true">🔵 GCash</button>
+                <button type="button" class="method-tab" data-method="maya" role="tab" aria-selected="false">🟢 Maya</button>
+                <button type="button" class="method-tab" data-method="card" role="tab" aria-selected="false">💳 Credit / Debit Card</button>
+            </div>
+
+            <form id="process-payment-form" class="pay-form payment-form" autocomplete="off" novalidate>
+                <input type="hidden" id="payment-booking-id">
+                <input type="hidden" id="selected-payment-method" value="gcash">
+
+                <div id="emoney-fields-wrapper" class="payment-fields-group">
+                    <div class="form-group">
+                        <label for="emoney-mobile-number" id="emoney-mobile-label">GCash Mobile Number *</label>
+                        <input type="tel" id="emoney-mobile-number" class="form-control" inputmode="numeric" autocomplete="off" placeholder="0917 000 0000" maxlength="11">
+                    </div>
+                    <div class="form-group">
+                        <label for="emoney-account-name">Account Name *</label>
+                        <input type="text" id="emoney-account-name" class="form-control" autocomplete="off" placeholder="Juan Dela Cruz" maxlength="120">
+                    </div>
+                    <div class="form-group">
+                        <label for="emoney-reference-number">Transaction Reference No. * <span class="ref-hint">(13-digit demo reference)</span></label>
+                        <div class="ref-input-group">
+                            <input type="text" id="emoney-reference-number" class="form-control" inputmode="numeric" autocomplete="off" placeholder="1002 9845 3210" maxlength="13">
+                            <button type="button" id="btn-generate-ref" class="btn-secondary-sm">Generate Ref</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="card-fields-wrapper" class="payment-fields-group hidden" hidden>
+                    <div class="form-group">
+                        <label for="card-number">Card Number *</label>
+                        <input type="text" id="card-number" class="form-control" inputmode="numeric" autocomplete="off" name="simulated_card_num" placeholder="4111 1111 1111 1111" maxlength="19">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardholder-name">Cardholder Name *</label>
+                        <input type="text" id="cardholder-name" class="form-control" autocomplete="off" name="simulated_card_name" placeholder="Juan Dela Cruz" maxlength="120">
+                    </div>
+                    <div class="form-row grid-2-col">
+                        <div class="form-group">
+                            <label for="card-expiry">Expiry Date *</label>
+                            <input type="text" id="card-expiry" class="form-control" inputmode="numeric" autocomplete="off" name="simulated_card_exp" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="card-cvv">CVV *</label>
+                            <input type="password" id="card-cvv" class="form-control" inputmode="numeric" autocomplete="off" name="simulated_card_cvv" placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pay-actions form-actions mt-4">
+                    <button type="submit" id="confirm-payment-btn" class="pay-btn pay-btn-primary btn-primary">Confirm Payment (Simulated)</button>
+                    <button type="button" id="pay-later-btn" class="pay-btn pay-btn-ghost btn-text">Pay Later</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <div id="payment-success-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="payment-success-title" aria-describedby="payment-success-description" hidden>
+        <div class="modal-card modal-card-dark text-center payment-success-card">
+            <div class="success-icon-circle" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h3 id="payment-success-title" class="modal-title">Payment Recorded</h3>
+            <p id="payment-success-description" class="modal-description">Your simulated payment has been recorded. Your booking is still subject to provider confirmation.</p>
+            <div class="payment-receipt-summary">
+                <div class="receipt-row"><span>Payment Method:</span><strong id="success-modal-method">GCASH</strong></div>
+                <div class="receipt-row"><span>Amount Paid:</span><strong id="success-modal-amount" class="text-green">₱0.00</strong></div>
+                <div class="receipt-row"><span>Reference No:</span><strong id="success-modal-ref">—</strong></div>
+            </div>
+            <div class="modal-actions mt-4">
+                <button type="button" id="btn-go-to-bookings" class="btn-modal-primary full-width">View My Bookings &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+<script type="module" src="js/firebase-config.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module" src="js/payment.js?v=2"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servibook - </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=11">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        .detail-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 24px 80px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* Service Image */
+        .detail-image {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            height: 400px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .detail-image .no-image { font-size: 5rem; }
+
+        /* Service Info */
+        .detail-info { margin-top: 24px; }
+
+        .detail-category {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .detail-name {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .detail-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-rating .stars { display: flex; gap: 2px; }
+
+        .detail-rating .stars svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--star);
+        }
+
+        .detail-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .detail-location svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-muted);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .detail-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 32px;
+        }
+
+        /* Provider Card */
+        .provider-detail-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .provider-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .provider-detail-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .provider-detail-info h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .provider-detail-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .provider-detail-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .provider-detail-stats .stat {
+            text-align: center;
+        }
+
+        .provider-detail-stats .stat strong {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .provider-detail-stats .stat small {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Booking Sidebar */
+        .booking-sidebar {
+            position: sticky;
+            top: 100px;
+        }
+
+        .booking-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .booking-price {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .booking-price span {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .booking-duration {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .booking-card .form-group {
+            margin-bottom: 16px;
+        }
+
+        .booking-card .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .booking-card .form-group input,
+        .booking-card .form-group textarea,
+        .booking-card .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--surface);
+            transition: border-color 0.2s;
+        }
+
+        .booking-card .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .booking-card .form-group input:focus,
+        .booking-card .form-group textarea:focus,
+        .booking-card .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .booking-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+
+        .booking-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37,99,235,0.4);
+        }
+
+        .login-prompt {
+            text-align: center;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 10px;
+            margin-top: 16px;
+        }
+
+        .login-prompt a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Reviews Section */
+        .reviews-section {
+            margin-top: 48px;
+        }
+
+        .reviews-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .review-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .review-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .review-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .review-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .review-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .review-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .review-stars svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--star);
+        }
+
+        .review-comment {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Related Services */
+        .related-section {
+            margin-top: 48px;
+        }
+
+        .related-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-sidebar {
+                position: static;
+            }
+
+            .detail-image {
+                height: 250px;
+            }
+        }
+                /* Fix related services image size */
+        .related-grid .card-image {
+            height: 160px !important;
+            overflow: hidden;
+        }
+
+        .related-grid .card-image img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+
+        .related-grid .service-card-item {
+            overflow: hidden;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="services.html" class="active">Services</a></li>
+                
+                    <li><a href="bookings.html" data-role="customer" class="auth-user d-none">My Bookings</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="theme-toggle" aria-label="Toggle color theme" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                
+                    <span class="user-welcome">Hi, </span>
+                    <a href="login.html" class="btn btn-outline auth-user d-none" data-firebase-signout>Logout</a>
+                
+                    <a href="login.html" class="btn btn-outline auth-guest">Login</a>
+                    <a href="register.html" class="btn btn-primary auth-guest">Sign up</a>
+                
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <div class="detail-section">
+        <div class="detail-grid">
+            <!-- Left Column -->
+            <div>
+                <!-- Image -->
+                <div class="detail-image">
+                    <img id="service-image" src="https://via.placeholder.com/600x400?text=No+Image+Available" alt="Service image">
+                </div>
+
+                <!-- Info -->
+                <div class="detail-info">
+                    <div class="detail-category" id="service-category"></div>
+                    <h1 class="detail-name" id="service-title"></h1>
+
+                    <div class="detail-meta">
+                        <div class="detail-rating">
+                            <strong id="service-rating-summary">★ 5.0 (0 reviews)</strong>
+                        </div>
+                        <div class="detail-location">
+                            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span id="service-location">San Jose, Occidental Mindoro</span>
+                        </div>
+                    </div>
+
+                    <p class="detail-description" id="service-description"></p>
+
+                    <!-- Provider Card -->
+                    <div class="provider-detail-card">
+                        <div class="provider-detail-header">
+                            <div class="provider-detail-avatar">
+                                <img id="provider-avatar-image" alt="" hidden>
+                                <span id="provider-avatar-initial">P</span>
+                            </div>
+                            <div class="provider-detail-info">
+                                <h3 id="service-provider-name">Local Provider</h3>
+                                <p>Service Provider</p>
+                            </div>
+                        </div>
+                        <div class="provider-detail-stats">
+                            <div class="stat">
+                                <strong id="provider-rating">★ 5.0</strong>
+                                <small>Rating</small>
+                            </div>
+                            <div class="stat">
+                                <strong id="provider-location">San Jose, Occidental Mindoro</strong>
+                                <small>Location</small>
+                            </div>
+                            <div class="stat">
+                                <strong id="provider-duration">N/A</strong>
+                                <small>Duration</small>
+                            </div>
+                        </div>
+                        <div class="provider-store-status-wrapper" aria-live="polite">
+                            <div id="store-status-badge" class="badge-store-status status-unavailable">Checking store hours…</div>
+                            <p id="store-hours-text" class="text-muted-sm"></p>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 12px;">Provider Location</h2>
+                        <div id="providerDetailMap" class="detail-map" data-lat="" data-lng="" hidden></div>
+                    </div>
+                    
+                </div>
+
+                <!-- Reviews -->
+                <div class="reviews-section">
+    <h2 id="review-heading">Reviews (0)</h2>
+
+    
+    <!-- Review Form -->
+    <div class="review-form-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Leave a Review</h3>
+
+        
+            
+        
+        
+            
+        
+
+        <form id="leave-review-form" hidden>
+            <input type="hidden" name="action" value="add_review">
+
+            <div class="form-group rating-picker-wrapper">
+                <label class="bold-label" id="rating-picker-label">Rating *</label>
+                <div class="star-rating-input" id="star-rating-input" role="radiogroup" aria-labelledby="rating-picker-label" aria-required="true">
+                    <button type="button" class="star-btn" role="radio" aria-checked="false" aria-label="1 star" tabindex="0" data-value="1">★</button>
+                    <button type="button" class="star-btn" role="radio" aria-checked="false" aria-label="2 stars" tabindex="-1" data-value="2">★</button>
+                    <button type="button" class="star-btn" role="radio" aria-checked="false" aria-label="3 stars" tabindex="-1" data-value="3">★</button>
+                    <button type="button" class="star-btn" role="radio" aria-checked="false" aria-label="4 stars" tabindex="-1" data-value="4">★</button>
+                    <button type="button" class="star-btn" role="radio" aria-checked="false" aria-label="5 stars" tabindex="-1" data-value="5">★</button>
+                </div>
+                <input type="hidden" id="selected-rating-value" name="rating" value="0">
+            </div>
+
+            <div class="form-group">
+                <label>Your Review</label>
+                <textarea name="comment" placeholder="Write your review here..." required style="width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95rem; font-family: inherit; color: var(--text-primary); background: var(--surface); min-height: 100px; resize: vertical;"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="padding: 12px 28px;">Submit Review</button>
+            <p id="review-status" class="review-status" role="status" aria-live="polite"></p>
+        </form>
+    </div>
+    
+    <div id="login-to-review-banner" class="login-to-review-banner" hidden style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 24px; text-align: center;">
+        <p style="color: var(--text-secondary);">Please <a href="login.html" style="color: var(--primary); font-weight: 600;">login</a> to leave a review.</p>
+    </div>
+    
+
+    
+                    <div id="reviews-list" aria-live="polite"></div>
+                    <p id="no-reviews-message" class="no-reviews-message" hidden>No reviews yet.</p>
+                </div>
+
+                <!-- Related Services -->
+                
+                <div class="related-section">
+                    <h2>Related Services</h2>
+                    <div class="related-grid" id="related-services-grid"></div>
+                </div>
+                
+            </div>
+
+            <!-- Right Column - Booking Sidebar -->
+            <div class="booking-sidebar">
+                <div class="booking-card">
+                    <div class="booking-price" id="booking-price">₱0.00 <span>/ service</span></div>
+                    <div class="booking-duration" id="booking-duration">Duration: N/A</div>
+
+                    <ol class="booking-progress" aria-label="Booking steps">
+                        <li>1. Choose service</li>
+                        <li aria-current="step">2. Select date and time</li>
+                        <li>3. Confirm</li>
+                    </ol>
+
+                    
+                        
+                    
+
+                    
+                        
+                    
+
+                    
+                    <p id="booking-status" class="booking-status" role="status" aria-live="polite" hidden></p>
+                    <div id="guest-booking-banner" class="guest-banner-card hidden" hidden>
+                        <div class="banner-icon" aria-hidden="true">🔒</div>
+                        <h4>Authentication Required</h4>
+                        <p>You must log in or create an account to book this service.</p>
+                        <div class="banner-actions mt-3">
+                            <a href="login.html" id="login-redirect-btn" class="btn-primary full-width">Log In to Book Service</a>
+                            <a href="register.html" class="btn-secondary full-width mt-2">Create New Account</a>
+                        </div>
+                    </div>
+
+                    <form id="booking-form" class="booking-form" hidden>
+                        <input type="hidden" name="action" value="book">
+
+                        <div class="form-group">
+                            <label for="booking-date">Booking date</label>
+                            <input id="booking-date" type="date" name="booking_date" aria-describedby="bookingDateHelp" required>
+                            <small class="field-help" id="bookingDateHelp">Select the day you need help.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="booking-time">Booking time</label>
+                            <input id="booking-time" type="time" name="booking_time" aria-describedby="bookingTimeHelp" required>
+                            <small class="field-help" id="bookingTimeHelp">Choose a time that works for you.</small>
+                        </div>
+
+                        <fieldset class="booking-mode-fieldset">
+                            <legend>Booking type</legend>
+                            <label class="booking-mode-option">
+                                <input type="radio" name="booking_mode" value="in_store" checked>
+                                <span>In-Store Visit</span>
+                            </label>
+                            <label class="booking-mode-option">
+                                <input type="radio" name="booking_mode" value="home_service">
+                                <span>Home Service</span>
+                            </label>
+                        </fieldset>
+                        <div id="in-store-queue-info" class="booking-mode-note">
+                            Your queue number for the selected date will be assigned when you book.
+                        </div>
+                        <div id="home-service-address-group" class="form-group" hidden>
+                            <label for="home-service-address">Home service address *</label>
+                            <textarea id="home-service-address" name="service_address" placeholder="House number, street / purok, barangay, and nearby landmark" maxlength="500" autocomplete="street-address"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="payment-method">Payment method</label>
+                            <select id="payment-method" name="payment_method" required>
+                                <option value="cash">Cash on Service</option>
+                                <option value="gcash">GCash</option>
+                                <option value="maya">Maya</option>
+                                <option value="card">Credit/Debit Card</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="booking-notes">Notes (optional)</label>
+                            <textarea id="booking-notes" name="notes" placeholder="Any special requests..."></textarea>
+                        </div>
+
+                        <button type="submit" id="book-service-btn" class="booking-submit">Book Service Now</button>
+                    </form>
+
+                    <button
+                        type="button"
+                        id="message-provider-btn"
+                        class="message-provider-btn"
+                        hidden
+                    >
+                        Message Provider
+                    </button>
+                    
+                        <div id="guest-message-btn" hidden>
+                            <a href="login.html" id="login-to-message-btn" class="message-provider-btn guest-message-btn" hidden>Login to Message Provider</a>
+                        </div>
+                    
+                        <div class="login-prompt" id="provider-booking-notice" hidden>
+                            <p>Only customers can book services.</p>
+                        </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-copyright">&copy; 2024 Servibook. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <div id="servibookChatMount"></div>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/chat-widget.js?v=3"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/main.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/service-details.js?v=6"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+

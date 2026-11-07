@@ -1,0 +1,527 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function hasRole(role) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isCustomer() { return hasRole('customer'); }
+    function isProvider() { return hasRole('provider'); }
+
+    function userHasRole(userId, role) {
+      return exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.role == role;
+    }
+
+    function optionalString(data, key, maxLength) {
+      return !(key in data)
+        || data[key] == null
+        || (data[key] is string && data[key].size() <= maxLength);
+    }
+
+    function validStoreHours(data) {
+      return ((!('storeOpenTime' in data)
+          && !('storeCloseTime' in data)
+          && !('storeOpenDays' in data))
+        || (data.storeOpenTime == ''
+          && data.storeCloseTime == ''
+          && data.storeOpenDays is list
+          && data.storeOpenDays.size() == 0)
+        || (data.storeOpenTime is string
+          && data.storeOpenTime.matches('^([01]\\d|2[0-3]):[0-5]\\d$')
+          && data.storeCloseTime is string
+          && data.storeCloseTime.matches('^([01]\\d|2[0-3]):[0-5]\\d$')
+          && data.storeOpenDays is list
+          && data.storeOpenDays.size() >= 1
+          && data.storeOpenDays.size() <= 7
+          && data.storeOpenDays.hasOnly(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])));
+    }
+
+    function queueRecordMatchesBooking(queueData) {
+      return queueData.lastBookingId is string
+        && existsAfter(/databases/$(database)/documents/bookings/$(queueData.lastBookingId))
+        && getAfter(/databases/$(database)/documents/bookings/$(queueData.lastBookingId)).data.customerId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/bookings/$(queueData.lastBookingId)).data.providerId == queueData.providerId
+        && getAfter(/databases/$(database)/documents/bookings/$(queueData.lastBookingId)).data.bookingMode == 'in_store'
+        && getAfter(/databases/$(database)/documents/bookings/$(queueData.lastBookingId)).data.queueDate == queueData.date
+        && getAfter(/databases/$(database)/documents/bookings/$(queueData.lastBookingId)).data.queueNumber == queueData.lastNumber;
+    }
+
+    function isConversationParticipant(data) {
+      return signedIn() && data != null && (
+        (('participants' in data)
+          && data.participants is list
+          && request.auth.uid in data.participants)
+        || (('customerId' in data) && data.customerId == request.auth.uid)
+        || (('providerId' in data) && data.providerId == request.auth.uid)
+      );
+    }
+
+    function isConversationPeer(data, peerId) {
+      return signedIn() && data != null && peerId is string && (
+        (('participants' in data)
+          && data.participants is list
+          && request.auth.uid in data.participants
+          && peerId in data.participants
+          && peerId != request.auth.uid)
+        || (('customerId' in data) && ('providerId' in data)
+          && ((data.customerId == request.auth.uid && data.providerId == peerId)
+            || (data.providerId == request.auth.uid && data.customerId == peerId)))
+      );
+    }
+
+    function validContactInquiry(data) {
+      return data.keys().hasOnly([
+          'name', 'email', 'phone', 'topic', 'message', 'status', 'createdAt'
+        ])
+        && data.keys().hasAll([
+          'name', 'email', 'phone', 'topic', 'message', 'status', 'createdAt'
+        ])
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 120
+        && data.email is string
+        && data.email.size() <= 254
+        && data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+        && data.phone is string
+        && data.phone.size() <= 30
+        && data.topic in ['booking', 'provider', 'account', 'other']
+        && data.message is string
+        && data.message.size() >= 1
+        && data.message.size() <= 5000
+        && data.status == 'new'
+        && data.createdAt is timestamp;
+    }
+
+    match /users/{userId} {
+      // Profile documents contain private email and phone information.
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly([
+          'uid', 'role', 'fullName', 'full_name', 'email', 'phone',
+          'barangay', 'streetAddress', 'location', 'photoURL', 'photoPath',
+          'storeOpenTime', 'storeCloseTime', 'storeOpenDays', 'createdAt'
+        ])
+        && request.resource.data.uid == userId
+        && request.resource.data.role in ['customer', 'provider']
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() >= 1
+        && request.resource.data.fullName.size() <= 120
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.createdAt is timestamp
+        && optionalString(request.resource.data, 'full_name', 120)
+        && optionalString(request.resource.data, 'phone', 30)
+        && optionalString(request.resource.data, 'barangay', 100)
+        && optionalString(request.resource.data, 'streetAddress', 300)
+        && optionalString(request.resource.data, 'location', 500)
+        && optionalString(request.resource.data, 'photoURL', 2048)
+        && optionalString(request.resource.data, 'photoPath', 500)
+        && validStoreHours(request.resource.data)
+        && (request.resource.data.role != 'provider'
+          || (request.resource.data.barangay is string
+            && request.resource.data.barangay.size() > 0));
+
+      allow update: if isOwner(userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.role in ['customer', 'provider']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'fullName', 'phone', 'barangay', 'streetAddress', 'location',
+          'photoURL', 'photoPath', 'storeOpenTime', 'storeCloseTime',
+          'storeOpenDays', 'updatedAt'
+        ])
+        && optionalString(request.resource.data, 'fullName', 120)
+        && optionalString(request.resource.data, 'phone', 30)
+        && optionalString(request.resource.data, 'barangay', 100)
+        && optionalString(request.resource.data, 'streetAddress', 300)
+        && optionalString(request.resource.data, 'location', 500)
+        && optionalString(request.resource.data, 'photoURL', 2048)
+        && optionalString(request.resource.data, 'photoPath', 500)
+        && validStoreHours(request.resource.data)
+        && (!('updatedAt' in request.resource.data)
+          || request.resource.data.updatedAt is timestamp);
+
+      // Account removal should be performed by a trusted account-deletion workflow.
+      allow delete: if false;
+    }
+
+    match /services/{serviceId} {
+      // Active listings are public. Providers can also read their own archived listings.
+      allow read: if resource.data.status == 'active'
+        || (isProvider() && resource.data.providerId == request.auth.uid);
+
+      allow create: if isProvider()
+        && request.resource.data.keys().hasOnly([
+          'name', 'category', 'description', 'price', 'status', 'providerId',
+          'providerName', 'providerPhotoURL', 'createdAt', 'location', 'barangay',
+          'streetAddress', 'duration', 'lat', 'lng', 'imageUrl', 'imagePublicId'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name', 'category', 'description', 'price', 'status', 'providerId',
+          'providerName', 'createdAt', 'location', 'barangay', 'streetAddress',
+          'duration', 'imageUrl', 'imagePublicId'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.category is string
+        && request.resource.data.category.size() >= 1
+        && request.resource.data.category.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 1
+        && request.resource.data.description.size() <= 5000
+        && request.resource.data.price is number
+        && request.resource.data.price >= 0
+        && request.resource.data.price <= 10000000
+        && request.resource.data.status == 'active'
+        && request.resource.data.providerId == request.auth.uid
+        && request.resource.data.providerName is string
+        && request.resource.data.providerName.size() >= 1
+        && request.resource.data.providerName.size() <= 120
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.location is string
+        && request.resource.data.location.size() >= 1
+        && request.resource.data.location.size() <= 500
+        && request.resource.data.barangay is string
+        && request.resource.data.barangay.size() >= 1
+        && request.resource.data.barangay.size() <= 100
+        && request.resource.data.streetAddress is string
+        && request.resource.data.streetAddress.size() <= 300
+        && request.resource.data.duration is string
+        && request.resource.data.duration.size() <= 80
+        && request.resource.data.imageUrl is string
+        && request.resource.data.imageUrl.matches('^https://res\\.cloudinary\\.com/hv009ion/.+')
+        && request.resource.data.imagePublicId is string
+        && optionalString(request.resource.data, 'providerPhotoURL', 2048)
+        && (('lat' in request.resource.data) == ('lng' in request.resource.data))
+        && (!('lat' in request.resource.data)
+          || (request.resource.data.lat is number
+            && request.resource.data.lat >= -90 && request.resource.data.lat <= 90
+            && request.resource.data.lng is number
+            && request.resource.data.lng >= -180 && request.resource.data.lng <= 180));
+
+      allow update: if isProvider()
+        && resource.data.providerId == request.auth.uid
+        && request.resource.data.providerId == resource.data.providerId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'category', 'description', 'price', 'duration', 'status', 'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.category is string
+        && request.resource.data.category.size() >= 1
+        && request.resource.data.category.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 1
+        && request.resource.data.description.size() <= 5000
+        && request.resource.data.price is number
+        && request.resource.data.price >= 0
+        && request.resource.data.price <= 10000000
+        && request.resource.data.duration is string
+        && request.resource.data.duration.size() <= 80
+        && request.resource.data.status in ['active', 'archived', 'inactive']
+        && request.resource.data.updatedAt is timestamp
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || (resource.data.status == 'active' && request.resource.data.status == 'archived')
+          || (resource.data.status in ['archived', 'inactive'] && request.resource.data.status == 'active'));
+
+      allow delete: if isProvider() && resource.data.providerId == request.auth.uid;
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isCustomer()
+        && request.resource.data.keys().hasOnly([
+          'serviceId', 'providerId', 'customerId', 'customerName',
+          'rating', 'comment', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'serviceId', 'providerId', 'customerId', 'customerName',
+          'rating', 'comment', 'createdAt'
+        ])
+        && request.resource.data.serviceId is string
+        && reviewId == request.resource.data.serviceId + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/services/$(request.resource.data.serviceId))
+        && get(/databases/$(database)/documents/services/$(request.resource.data.serviceId)).data.status == 'active'
+        && request.resource.data.providerId == get(/databases/$(database)/documents/services/$(request.resource.data.serviceId)).data.providerId
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.customerName is string
+        && request.resource.data.customerName.size() >= 1
+        && request.resource.data.customerName.size() <= 120
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() >= 1
+        && request.resource.data.comment.size() <= 2000
+        && request.resource.data.createdAt is timestamp;
+      // Providers may only add or replace the reply fields on reviews for their own service.
+      // Customer rating, comment, author, and timestamp remain immutable from client apps.
+      allow update: if isProvider()
+        && resource.data.serviceId is string
+        && exists(/databases/$(database)/documents/services/$(resource.data.serviceId))
+        && get(/databases/$(database)/documents/services/$(resource.data.serviceId)).data.providerId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'providerReply', 'providerReplyAt'
+        ])
+        && request.resource.data.keys().hasAll(['providerReply', 'providerReplyAt'])
+        && request.resource.data.providerReply is string
+        && request.resource.data.providerReply.size() >= 1
+        && request.resource.data.providerReply.size() <= 2000
+        && request.resource.data.providerReplyAt is timestamp;
+      allow delete: if false;
+    }
+
+    match /bookings/{bookingId} {
+      allow create: if isCustomer()
+        && request.resource.data.keys().hasOnly([
+          'customerId', 'customerName', 'serviceId', 'serviceName', 'providerId',
+          'providerName', 'category', 'imageUrl', 'price', 'date', 'time',
+          'paymentMethod', 'status', 'notes', 'createdAt', 'bookingMode',
+          'serviceAddress', 'queueDate', 'queueNumber'
+        ])
+        && request.resource.data.keys().hasAll([
+          'customerId', 'customerName', 'serviceId', 'serviceName', 'providerId',
+          'price', 'date', 'time', 'paymentMethod', 'status', 'notes', 'createdAt', 'bookingMode'
+        ])
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.customerName is string
+        && request.resource.data.customerName.size() >= 1
+        && request.resource.data.customerName.size() <= 120
+        && request.resource.data.serviceId is string
+        && exists(/databases/$(database)/documents/services/$(request.resource.data.serviceId))
+        && get(/databases/$(database)/documents/services/$(request.resource.data.serviceId)).data.status == 'active'
+        && request.resource.data.providerId == get(/databases/$(database)/documents/services/$(request.resource.data.serviceId)).data.providerId
+        && request.resource.data.serviceName is string
+        && request.resource.data.serviceName.size() >= 1
+        && request.resource.data.serviceName.size() <= 120
+        && request.resource.data.providerId is string
+        && request.resource.data.price is number
+        && request.resource.data.price >= 0
+        && request.resource.data.price == get(/databases/$(database)/documents/services/$(request.resource.data.serviceId)).data.price
+        && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && request.resource.data.time.matches('^\\d{2}:\\d{2}$')
+        && request.resource.data.paymentMethod in ['cash', 'gcash', 'maya', 'card']
+        && request.resource.data.status == 'pending'
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 2000
+        && request.resource.data.createdAt is timestamp
+        && optionalString(request.resource.data, 'providerName', 120)
+        && optionalString(request.resource.data, 'category', 80)
+        && optionalString(request.resource.data, 'imageUrl', 2048)
+        && ((request.resource.data.bookingMode == 'home_service'
+            && request.resource.data.serviceAddress is string
+            && request.resource.data.serviceAddress.size() >= 5
+            && request.resource.data.serviceAddress.size() <= 500
+            && !('queueDate' in request.resource.data)
+            && !('queueNumber' in request.resource.data))
+          || (request.resource.data.bookingMode == 'in_store'
+            && request.resource.data.queueDate == request.resource.data.date
+            && request.resource.data.queueNumber is int
+            && request.resource.data.queueNumber >= 1
+            && !('serviceAddress' in request.resource.data)
+            && existsAfter(/databases/$(database)/documents/providerDailyQueues/$(request.resource.data.providerId + '_' + request.resource.data.queueDate))
+            && getAfter(/databases/$(database)/documents/providerDailyQueues/$(request.resource.data.providerId + '_' + request.resource.data.queueDate)).data.providerId == request.resource.data.providerId
+            && getAfter(/databases/$(database)/documents/providerDailyQueues/$(request.resource.data.providerId + '_' + request.resource.data.queueDate)).data.date == request.resource.data.queueDate
+            && getAfter(/databases/$(database)/documents/providerDailyQueues/$(request.resource.data.providerId + '_' + request.resource.data.queueDate)).data.lastNumber == request.resource.data.queueNumber
+            && getAfter(/databases/$(database)/documents/providerDailyQueues/$(request.resource.data.providerId + '_' + request.resource.data.queueDate)).data.lastBookingId == bookingId));
+
+      allow read: if signedIn()
+        && (resource.data.customerId == request.auth.uid
+          || resource.data.providerId == request.auth.uid);
+
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'updatedAt', 'paymentMethod', 'paymentStatus', 'paymentReference'
+        ])
+        && request.resource.data.updatedAt is timestamp
+        && (((isCustomer()
+              && resource.data.customerId == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+              && resource.data.status == 'pending'
+              && request.resource.data.status == 'cancelled')
+            || (isProvider()
+              && resource.data.providerId == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+              && ((resource.data.status == 'pending'
+                  && request.resource.data.status in ['confirmed', 'cancelled'])
+                || (resource.data.status == 'confirmed'
+                  && request.resource.data.status == 'completed')))
+            || (isCustomer()
+              && resource.data.customerId == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'paymentMethod', 'paymentStatus', 'paymentReference', 'updatedAt'
+              ])
+              && resource.data.status in ['pending', 'confirmed']
+              && (!('paymentStatus' in resource.data) || resource.data.paymentStatus != 'paid')
+              && request.resource.data.paymentStatus == 'paid'
+              && request.resource.data.paymentMethod in ['gcash', 'maya', 'card']
+              && request.resource.data.paymentReference is string
+              && request.resource.data.paymentReference.size() <= 32
+              && ((request.resource.data.paymentMethod in ['gcash', 'maya']
+                  && request.resource.data.paymentReference.matches('^\\d{13}$'))
+                || (request.resource.data.paymentMethod == 'card'
+                  && request.resource.data.paymentReference.matches('^SIM-\\d{13}$'))))
+            || (isProvider()
+              && resource.data.providerId == request.auth.uid
+              && resource.data.paymentMethod in ['cash', 'Cash on Service']
+              && resource.data.status != 'cancelled'
+              && (!('paymentStatus' in resource.data) || resource.data.paymentStatus == 'pending')
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentStatus', 'updatedAt'])
+              && request.resource.data.paymentStatus == 'paid')));
+
+      allow delete: if false;
+    }
+
+    match /providerDailyQueues/{queueId} {
+      // Queue documents hold only a per-provider, per-date incrementing counter.
+      allow read: if signedIn();
+
+      allow create: if isCustomer()
+        && request.resource.data.keys().hasOnly([
+          'providerId', 'date', 'lastNumber', 'lastBookingId', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'providerId', 'date', 'lastNumber', 'lastBookingId', 'updatedAt'
+        ])
+        && request.resource.data.providerId is string
+        && userHasRole(request.resource.data.providerId, 'provider')
+        && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && queueId == request.resource.data.providerId + '_' + request.resource.data.date
+        && request.resource.data.lastNumber == 1
+        && request.resource.data.updatedAt is timestamp
+        && queueRecordMatchesBooking(request.resource.data);
+
+      allow update: if isCustomer()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'lastNumber', 'lastBookingId', 'updatedAt'
+        ])
+        && request.resource.data.providerId == resource.data.providerId
+        && request.resource.data.date == resource.data.date
+        && request.resource.data.lastNumber is int
+        && resource.data.lastNumber is int
+        && request.resource.data.lastNumber == resource.data.lastNumber + 1
+        && request.resource.data.updatedAt is timestamp
+        && queueRecordMatchesBooking(request.resource.data);
+
+      allow delete: if false;
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if isConversationParticipant(resource.data);
+
+      allow create: if isCustomer()
+        && request.resource.data.keys().hasOnly([
+          'customerId', 'customerName', 'providerId', 'providerName', 'participants',
+          'partnerNames', 'serviceId', 'lastMessage', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'customerId', 'customerName', 'providerId', 'providerName',
+          'participants', 'lastMessage', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.customerName is string
+        && request.resource.data.customerName.size() >= 1
+        && request.resource.data.customerName.size() <= 120
+        && request.resource.data.providerId is string
+        && request.resource.data.providerId != request.auth.uid
+        && userHasRole(request.resource.data.providerId, 'provider')
+        && request.resource.data.providerName is string
+        && request.resource.data.providerName.size() >= 1
+        && request.resource.data.providerName.size() <= 120
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() == 2
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.providerId in request.resource.data.participants
+        && request.resource.data.lastMessage is string
+        && request.resource.data.lastMessage.size() <= 1000
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && (!('serviceId' in request.resource.data)
+          || request.resource.data.serviceId == null
+          || request.resource.data.serviceId is string)
+        && (!('partnerNames' in request.resource.data)
+          || (request.resource.data.partnerNames is map
+            && request.resource.data.partnerNames.keys().hasOnly([
+              request.auth.uid, request.resource.data.providerId
+            ])));
+
+      allow update: if isConversationParticipant(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'updatedAt'])
+        && request.resource.data.lastMessage is string
+        && request.resource.data.lastMessage.size() <= 1000
+        && request.resource.data.updatedAt is timestamp;
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        function parentConversation() {
+          return get(/databases/$(database)/documents/conversations/$(conversationId)).data;
+        }
+
+        allow read: if isConversationParticipant(parentConversation());
+
+        allow create: if isConversationParticipant(parentConversation())
+          && request.resource.data.keys().hasOnly([
+            'senderId', 'receiverId', 'senderName', 'text', 'createdAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'senderId', 'receiverId', 'text', 'createdAt'
+          ])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.receiverId is string
+          && request.resource.data.receiverId != request.auth.uid
+          && isConversationPeer(parentConversation(), request.resource.data.receiverId)
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt is timestamp
+          && optionalString(request.resource.data, 'senderName', 120);
+
+        allow update, delete: if false;
+      }
+    }
+
+    match /providers/{providerId} {
+      // Provider documents are intentionally public map/profile summaries.
+      allow read: if true;
+      allow create, update: if isProvider()
+        && request.auth.uid == providerId
+        && request.resource.data.keys().hasOnly([
+          'userId', 'providerId', 'name', 'fullName', 'location', 'barangay',
+          'photoURL', 'storeOpenTime', 'storeCloseTime', 'storeOpenDays', 'updatedAt'
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.providerId == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.location is string
+        && request.resource.data.location.size() <= 500
+        && request.resource.data.barangay is string
+        && request.resource.data.barangay.size() <= 100
+        && optionalString(request.resource.data, 'fullName', 120)
+        && optionalString(request.resource.data, 'photoURL', 2048)
+        && validStoreHours(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /contactInquiries/{inquiryId} {
+      allow create: if validContactInquiry(request.resource.data);
+      // Inquiries are reviewed through trusted admin tooling, never the public client.
+      allow read, update, delete: if false;
+    }
+  }
+}

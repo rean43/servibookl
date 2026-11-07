@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servibook - Provider Map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="map.html" class="active" aria-current="page">Map</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="bookings.html" data-role="customer" class="auth-user d-none">My Bookings</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="theme-toggle" aria-label="Toggle color theme" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                <a href="login.html" data-firebase-signout class="btn btn-outline auth-user d-none">Logout</a>
+                <a href="login.html" class="btn btn-outline auth-guest">Login</a>
+                <a href="register.html" class="btn btn-primary auth-guest">Sign Up</a>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <main class="map-page">
+        <header class="map-page-header">
+            <h1>Service Providers in San Jose</h1>
+            <p>Explore local providers by area, rating, and available services.</p>
+            <form class="map-page-search" role="search">
+                <label class="visually-hidden" for="locationInput">Search a location</label>
+                <input type="search" id="locationInput" class="form-control" placeholder="Search a location">
+                <button type="submit" id="searchBtn" class="btn btn-primary">Search</button>
+            </form>
+        </header>
+        <div class="map-view-actions">
+            <button id="providersViewToggle" class="btn btn-outline" type="button" aria-controls="providerList" aria-pressed="false">View as List</button>
+        </div>
+        <div id="providersMap" class="map-container" role="region" aria-label="Map of service providers in San Jose"></div>
+        <div id="providerList" class="provider-list" role="region" aria-live="polite" aria-label="Service providers in San Jose" tabindex="-1" hidden>
+            <p class="provider-list-empty">Loading providers…</p>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg></div>
+                Servibook
+            </div>
+            <div class="footer-links"><a href="index.html">Home</a><a href="services.html">Services</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="bookings.html" data-role="customer" class="auth-user d-none">My Bookings</a></div>
+            <div class="footer-copyright">© 2024 Servibook. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script type="module" src="js/map.js?v=2"></script>
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>

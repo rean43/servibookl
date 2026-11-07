@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servibook - Book Local Services</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="#map">Map</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="bookings.html" data-role="customer" class="auth-user d-none">My Bookings</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="theme-toggle" aria-label="Toggle color theme" id="themeToggle" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                <a href="login.html" data-firebase-signout class="btn btn-outline auth-user d-none">Logout</a>
+                <a href="login.html" class="btn btn-outline auth-guest">Login</a>
+                <a href="register.html" class="btn btn-primary auth-guest">Sign Up</a>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+        <div class="hero-content">
+            <h1>Book Local Services<br>with Ease!</h1>
+            <p>Find and schedule appointments easily with local services provider</p>
+            <div class="search-box">
+                <div class="search-input-wrapper">
+                    <label class="visually-hidden" for="locationInput">Enter your location</label>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <input type="text" class="search-input" placeholder="Enter your location" id="locationInput">
+                </div>
+                <button class="search-btn" id="searchBtn" type="button">Search</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Provider Map -->
+    <section class="map-section" id="map">
+        <div class="section-header">
+            <h2 class="section-title">Find Providers Near You</h2>
+            <p class="section-subtitle">Explore trusted service providers on the map</p>
+        </div>
+        <div class="map-view-actions">
+            <button id="providersViewToggle" class="btn btn-outline" type="button" aria-controls="providerList" aria-pressed="false">View as List</button>
+            <a href="map.html" class="btn btn-primary">Open Full Map</a>
+        </div>
+        <div id="providersMap" class="map-container" role="region" aria-label="Map of nearby service providers"></div>
+        <div id="providerList" class="provider-list" role="region" aria-live="polite" aria-label="Nearby service providers" tabindex="-1" hidden>
+            <p class="provider-list-empty">Loading nearby providers…</p>
+        </div>
+    </section>
+
+    <!-- Popular Services -->
+<section class="services-section" id="services">
+    <div class="section-header">
+        <h2 class="section-title">Popular Services</h2>
+        <p class="section-subtitle">Choose from our most requested services</p>
+    </div>
+    <div class="services-grid">
+            <a href="services.html" class="service-card">
+                <div class="service-icon">👕</div>
+                <div class="service-name">Laundry</div>
+            </a>
+            <a href="services.html" class="service-card">
+                <div class="service-icon">🧹</div>
+                <div class="service-name">House Cleaning</div>
+            </a>
+            <a href="services.html" class="service-card">
+                <div class="service-icon">⚡</div>
+                <div class="service-name">Electrician</div>
+            </a>
+            <a href="services.html" class="service-card">
+                <div class="service-icon">🪚</div>
+                <div class="service-name">Carpenter</div>
+            </a>
+            <a href="services.html" class="service-card">
+                <div class="service-icon">🔧</div>
+                <div class="service-name">Plumber</div>
+            </a>
+            <a href="services.html" class="service-card">
+                <div class="service-icon">✂️</div>
+                <div class="service-name">Barbershop</div>
+            </a>
+        
+    </div>
+</section>
+
+
+    <!-- Top Service Providers -->
+    <section class="providers-section" id="providers">
+        <div class="providers-container">
+            <div class="section-header">
+                <h2 class="section-title">Top Service Providers</h2>
+                <p class="section-subtitle">Trusted professionals in your area</p>
+            </div>
+            <div class="providers-grid" id="top-provider-grid" aria-live="polite">
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <p>Loading active service providers…</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-copyright">© 2024 Servibook. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <div id="servibookChatMount"></div><script type="module" src="js/firebase-config.js"></script><script type="module" src="js/chat-widget.js?v=3"></script>
+
+    <script src="js/main.js"></script>
+    <script type="module" src="js/map.js?v=2"></script>
+<script type="module" src="js/auth.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+

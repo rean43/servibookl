@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servibook - My Bookings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=9">
+    <style>
+        .bookings-section {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 28px 24px 80px;
+        }
+
+        .page-header-bookings {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-header-bookings h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stat-card.total .stat-number { color: var(--primary); }
+        .stat-card.pending .stat-number { color: #f59e0b; }
+        .stat-card.confirmed .stat-number { color: #3b82f6; }
+        .stat-card.completed .stat-number { color: #22c55e; }
+
+        .payment-info { margin-top: 10px; font-size: 0.82rem; color: var(--text-muted); }
+        .payment-badge { display: inline-flex; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+        .payment-badge.paid { background: #f0fdf4; color: #16a34a; }
+        .payment-badge.pending { background: #fefce8; color: #ca8a04; }
+        .payment-badge.failed, .payment-badge.refunded { background: #fef2f2; color: #dc2626; }
+        .pay-now-btn { display: inline-block; margin-top: 8px; padding: 8px 14px; border-radius: 8px; background: #eff6ff; color: #2563eb; font-size: 0.82rem; font-weight: 700; text-decoration: none; }
+        .pay-now-btn:hover { background: #2563eb; color: white; }
+        .txn-small { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block; }
+
+        /* Booking Cards */
+        .bookings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .booking-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.2s;
+        }
+
+        .booking-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .booking-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .booking-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .booking-image .no-image { font-size: 2rem; }
+
+        .booking-info { flex: 1; min-width: 0; }
+
+        .booking-info h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .booking-info .booking-provider {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .booking-details {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .booking-details span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .booking-details svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .booking-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .status-badge.pending {
+            background: #fefce8;
+            color: #ca8a04;
+        }
+
+        .status-badge.confirmed {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .status-badge.completed {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .status-badge.cancelled {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        [data-theme="dark"] .status-badge.pending {
+            background: #422006;
+            color: #fde047;
+        }
+
+        [data-theme="dark"] .status-badge.confirmed {
+            background: #172554;
+            color: #93c5fd;
+        }
+
+        [data-theme="dark"] .status-badge.completed {
+            background: #052e16;
+            color: #86efac;
+        }
+
+        [data-theme="dark"] .status-badge.cancelled {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+
+        .booking-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .cancel-btn {
+            font-size: 0.8rem;
+            color: #ef4444;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .cancel-btn:hover { color: #dc2626; text-decoration: underline; }
+
+        .booking-success-banner {
+            margin: 0 0 20px;
+            padding: 14px 18px;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .booking-success-banner[hidden] { display: none !important; }
+        .booking-card {
+            min-height: 220px;
+            padding: 20px;
+            gap: 20px;
+        }
+        .booking-card .booking-info h3 { margin-bottom: 4px; }
+        .booking-card .booking-provider { margin: 0 0 12px; }
+        .booking-right {
+            width: 255px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .booking-right .status-badge { margin-bottom: 0; }
+        .booking-right .booking-price { margin: 0; font-size: 1.1rem; }
+        .booking-payment-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: .82rem;
+        }
+        .booking-payment-row .payment-badge { margin: 0; }
+        .booking-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            width: 100%;
+            margin-top: 2px;
+        }
+        .booking-chat-btn {
+            width: 100%;
+            min-height: 44px !important;
+            padding: 9px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--primary);
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .booking-chat-btn:hover { background: rgba(37, 99, 235, .06); border-color: var(--primary); }
+        .booking-cancel-btn {
+            min-height: 40px !important;
+            padding: 8px 14px;
+            border: 1px solid #fecaca;
+            border-radius: 9px;
+            background: #fff1f2;
+            color: #b91c1c;
+            font: inherit;
+            font-size: .85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .booking-cancel-btn:hover { background: #fee2e2; border-color: #fca5a5; }
+        .booking-cancel-btn:disabled { opacity: .6; cursor: wait; }
+        [data-theme="dark"] .booking-cancel-btn { background: #450a0a; border-color: #7f1d1d; color: #fecaca; }
+        [data-theme="dark"] .booking-cancel-btn:hover { background: #7f1d1d; }
+        .booking-meta { color: var(--text-muted); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            stroke: var(--text-muted);
+            stroke-width: 1.5;
+            fill: none;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; }
+        .empty-state p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .booking-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .booking-right {
+                text-align: center;
+                width: 100%;
+                align-items: center;
+            }
+
+            .booking-actions { align-items: center; }
+
+            .booking-details {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body data-requires-auth data-requires-role="customer">
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="bookings.html" data-role="customer" class="active auth-user d-none">My Bookings</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="theme-toggle" aria-label="Toggle color theme" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="provider-dashboard.html" data-dashboard-link class="btn btn-outline auth-user d-none">Dashboard</a>
+                <span class="user-welcome">Hi, </span>
+                <a href="login.html" class="btn btn-outline auth-user d-none" data-firebase-signout>Logout</a>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <div class="bookings-section">
+        <div id="booking-success-banner" class="booking-success-banner" role="status" hidden>
+            Booking submitted! Pay the provider in cash when the service is completed.
+        </div>
+        <div class="page-header-bookings">
+            <h1>My Bookings</h1>
+            <a href="services.html" class="btn btn-primary">+ Book a Service</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-number" id="total-bookings-count">0</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-number" id="pending-count">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card confirmed">
+                <div class="stat-number" id="confirmed-count">0</div>
+                <div class="stat-label">Confirmed</div>
+            </div>
+            <div class="stat-card completed">
+                <div class="stat-number" id="completed-count">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Bookings List -->
+        
+        <div id="bookings-loading" role="status">Loading your bookings…</div>
+        <div id="bookings-list-container" hidden>
+            <div class="bookings-list" id="bookings-list"></div>
+        </div>
+        
+        <div class="empty-state" id="no-bookings-container" hidden>
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <h3>No bookings yet</h3>
+            <p>Browse services and book your first appointment.</p>
+            <a href="services.html" class="btn btn-primary">Browse Services</a>
+        </div>
+        
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                </div>
+                Servibook
+            </div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-copyright">&copy; 2024 Servibook. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <div id="servibookChatMount"></div><script type="module" src="js/firebase-config.js"></script><script type="module" src="js/chat-widget.js?v=3"></script>
+
+    <!-- Custom Cancellation Confirmation Modal -->
+    <div id="cancel-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="cancel-modal-title" aria-describedby="cancel-modal-description" hidden>
+        <div class="modal-card" role="document">
+            <div class="modal-icon-wrapper" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h3 id="cancel-modal-title" class="modal-title">Cancel this booking?</h3>
+            <p id="cancel-modal-description" class="modal-description">Are you sure you want to cancel your appointment? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button type="button" id="close-cancel-modal-btn" class="btn-modal-secondary">Keep Booking</button>
+                <button type="button" id="confirm-cancel-btn" class="btn-modal-danger">Yes, Cancel Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/bookings.js?v=7"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+

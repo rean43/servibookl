@@ -1,0 +1,58 @@
+<?php
+header('Content-Type: application/json');
+require_once '../includes/auth.php';
+require_once '../includes/chat.php';
+
+if (!isLoggedIn()) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Login required']);
+    exit;
+}
+
+$data = json_decode(file_get_contents('php://input'), true);
+$providerId = (int) ($data['provider_id'] ?? 0);
+$serviceId = isset($data['service_id']) ? (int) $data['service_id'] : null;
+
+if (!$providerId) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Provider is required']);
+    exit;
+}
+
+$userId = (int) $_SESSION['user_id'];
+$role = getUserRole();
+
+if ($role === 'customer') {
+    $customerId = $userId;
+} elseif ($role === 'provider') {
+    http_response_code(403);
+    echo json_encode(['error' => 'Providers cannot start conversations this way']);
+    exit;
+} else {
+    http_response_code(403);
+    echo json_encode(['error' => 'Only customers can start chats']);
+    exit;
+}
+
+$providerCheck = $pdo->prepare("SELECT id, full_name FROM users WHERE id = ? AND role = 'provider'");
+$providerCheck->execute([$providerId]);
+$provider = $providerCheck->fetch();
+
+if (!$provider) {
+    http_response_code(404);
+    echo json_encode(['error' => 'Provider not found']);
+    exit;
+}
+
+try {
+    $conversationId = getOrCreateConversation($pdo, $customerId, $providerId, $serviceId);
+
+    echo json_encode([
+        'conversation_id' => $conversationId,
+        'partner_name' => $provider['full_name'],
+        'partner_id' => (int) $provider['id'],
+    ]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Unable to start conversation. Run database/migration_chat_map.sql first.']);
+}
